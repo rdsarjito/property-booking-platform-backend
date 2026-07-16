@@ -8,6 +8,8 @@ import databaseConfig from './config/database.config';
 import { envValidationSchema } from './config/env.validation';
 import { PropertiesModule } from './modules/properties/properties.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
+import { CouponsModule } from './modules/coupons/coupons.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { RoomsModule } from './modules/rooms/rooms.module';
     }),
     PropertiesModule,
     RoomsModule,
+    CouponsModule,
+    BookingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
