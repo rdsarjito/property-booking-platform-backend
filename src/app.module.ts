@@ -7,6 +7,7 @@ import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import { envValidationSchema } from './config/env.validation';
 import { PropertiesModule } from './modules/properties/properties.module';
+import { RoomsModule } from './modules/rooms/rooms.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PropertiesModule } from './modules/properties/properties.module';
       }),
     }),
     PropertiesModule,
+    RoomsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
