@@ -229,6 +229,51 @@ export class BookingsService {
     });
   }
 
+  async refund(id: number): Promise<BookingResponseDto> {
+    return this.dataSource.transaction(async (manager) => {
+      const booking = await manager.findOne(Booking, {
+        where: { id },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!booking) {
+        throw new NotFoundException(`Booking with id ${id} not found`);
+      }
+
+      if (booking.status !== BookingStatus.PAID) {
+        throw new ConflictException(
+          `Cannot refund booking with status ${booking.status}. Only PAID bookings can be refunded.`,
+        );
+      }
+
+      // Restore room unit
+      const room = await manager.findOne(Room, {
+        where: { id: booking.roomId },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (room) {
+        room.availableUnit = Math.min(room.availableUnit + 1, room.totalUnit);
+        await manager.save(Room, room);
+      }
+
+      const oldStatus = booking.status;
+      booking.status = BookingStatus.CANCELLED;
+      booking.cancelledAt = new Date();
+      const saved = await manager.save(Booking, booking);
+
+      const history = manager.create(BookingStatusHistory, {
+        bookingId: booking.id,
+        fromStatus: oldStatus,
+        toStatus: BookingStatus.CANCELLED,
+        note: `Booking refunded. Refunding final amount of ${booking.finalPrice} to customer.`,
+      });
+      await manager.save(BookingStatusHistory, history);
+
+      return this.mapToResponse(saved);
+    });
+  }
+
   private mapToResponse(booking: Booking): BookingResponseDto {
     return {
       id: booking.id,

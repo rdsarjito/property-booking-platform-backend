@@ -21,4 +21,9 @@ export class BookingsController {
   async cancel(@Param('id', ParseIntPipe) id: number): Promise<BookingResponseDto> {
     return this.bookingsService.cancel(id);
   }
+
+  @Patch(':id/refund')
+  async refund(@Param('id', ParseIntPipe) id: number): Promise<BookingResponseDto> {
+    return this.bookingsService.refund(id);
+  }
 }
