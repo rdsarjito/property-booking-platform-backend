@@ -3,8 +3,10 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, Raw } from 'typeorm';
+import { Cron } from '@nestjs/schedule';
 import { Booking } from '../entities/booking.entity';
 import { BookingStatusHistory } from '../entities/booking-status-history.entity';
 import { BookingStatus } from '../enums/booking-status.enum';
@@ -19,6 +21,8 @@ import { differenceInCalendarDays, parseISO } from 'date-fns';
 
 @Injectable()
 export class BookingsService {
+  private readonly logger = new Logger(BookingsService.name);
+
   constructor(
     private readonly dataSource: DataSource,
     private readonly pricingService: PricingService,
@@ -243,5 +247,52 @@ export class BookingsService {
       status: booking.status,
       createdAt: booking.createdAt,
     };
+  }
+
+  @Cron('*/15 * * * *')
+  async handleExpiredBookings(): Promise<void> {
+    this.logger.log('Checking for expired pending bookings...');
+
+    await this.dataSource.transaction(async (manager) => {
+      const expiredBookings = await manager.find(Booking, {
+        where: {
+          status: BookingStatus.PENDING,
+          expiredAt: Raw((alias) => `${alias} <= :now`, { now: new Date() }),
+        },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (expiredBookings.length === 0) {
+        return;
+      }
+
+      this.logger.log(`Found ${expiredBookings.length} expired bookings to process`);
+
+      for (const booking of expiredBookings) {
+        booking.status = BookingStatus.EXPIRED;
+        await manager.save(Booking, booking);
+
+        // Restore room unit
+        const room = await manager.findOne(Room, {
+          where: { id: booking.roomId },
+          lock: { mode: 'pessimistic_write' },
+        });
+
+        if (room) {
+          room.availableUnit = Math.min(room.availableUnit + 1, room.totalUnit);
+          await manager.save(Room, room);
+        }
+
+        const history = manager.create(BookingStatusHistory, {
+          bookingId: booking.id,
+          fromStatus: BookingStatus.PENDING,
+          toStatus: BookingStatus.EXPIRED,
+          note: 'Booking expired automatically due to payment timeout',
+        });
+        await manager.save(BookingStatusHistory, history);
+      }
+
+      this.logger.log('Successfully expired all pending unpaid bookings');
+    });
   }
 }
