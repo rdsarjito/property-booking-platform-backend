@@ -16,7 +16,6 @@ import { BookingResponseDto } from '../dto/booking-response.dto';
 import { BookingCodeHelper } from '../../../common/helpers/booking-code.helper';
 import { PricingService } from './pricing.service';
 import { CouponsService } from '../../coupons/coupons.service';
-import { CouponType } from '../../coupons/entities/coupon.entity';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 
 @Injectable()
@@ -56,43 +55,33 @@ export class BookingsService {
         throw new BadRequestException('Check-out date must be after check-in date');
       }
 
-      // 4. Calculate base subtotal
-      const subtotal = room.pricePerNight * totalNights;
-
-      // 5. Automatic discount stay >= 3 nights
-      let automaticDiscount = 0;
-      if (totalNights >= 3) {
-        automaticDiscount = subtotal * 0.1;
-      }
-      const subtotalAfterAutoDiscount = subtotal - automaticDiscount;
-
-      // 6. Optional Coupon validation
+      // 4. Validate coupon code if provided (to fail fast before locking units)
       let couponEntity = null;
-      let couponDiscount = 0;
-
       if (createBookingDto.couponCode) {
         couponEntity = await this.couponsService.findByCode(createBookingDto.couponCode);
-        this.couponsService.validate(couponEntity, subtotalAfterAutoDiscount);
-
-        // Calculate coupon discount
-        if (couponEntity.type === CouponType.PERCENT) {
-          let discount = subtotalAfterAutoDiscount * (couponEntity.discountValue / 100);
-          if (couponEntity.maxDiscount !== null && discount > couponEntity.maxDiscount) {
-            discount = couponEntity.maxDiscount;
-          }
-          couponDiscount = Math.min(discount, subtotalAfterAutoDiscount);
-        } else {
-          couponDiscount = Math.min(couponEntity.discountValue, subtotalAfterAutoDiscount);
-        }
+        const subtotalEstim = room.pricePerNight * totalNights;
+        const autoDiscountEstim = totalNights >= 3 ? subtotalEstim * 0.1 : 0;
+        this.couponsService.validate(couponEntity, subtotalEstim - autoDiscountEstim);
       }
 
-      const finalPrice = subtotalAfterAutoDiscount - couponDiscount;
+      // 5. Calculate final prices using PricingService
+      const pricing = this.pricingService.calculate({
+        pricePerNight: room.pricePerNight,
+        totalNights,
+        coupon: couponEntity
+          ? {
+              type: couponEntity.type,
+              discountValue: couponEntity.discountValue,
+              maxDiscount: couponEntity.maxDiscount,
+            }
+          : null,
+      });
 
-      // 7. Decrement available room units
+      // 6. Decrement available room units
       room.availableUnit -= 1;
       await manager.save(Room, room);
 
-      // 8. Create booking record
+      // 7. Create booking record
       const expiredAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiry
       const bookingCode = BookingCodeHelper.generate();
 
@@ -105,10 +94,10 @@ export class BookingsService {
         checkInDate: createBookingDto.checkInDate,
         checkOutDate: createBookingDto.checkOutDate,
         totalNights,
-        subtotal,
-        automaticDiscount,
-        couponDiscount,
-        finalPrice,
+        subtotal: pricing.subtotal,
+        automaticDiscount: pricing.automaticDiscount,
+        couponDiscount: pricing.couponDiscount,
+        finalPrice: pricing.finalPrice,
         status: BookingStatus.PENDING,
         expiredAt,
       });
