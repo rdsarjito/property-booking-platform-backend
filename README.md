@@ -361,9 +361,9 @@ PORT=3000
 
 POSTGRES_HOST=postgres   # Docker service name (do NOT change for Docker)
 POSTGRES_PORT=5432
-POSTGRES_DB=property_booking
-POSTGRES_USERNAME=postgres
-POSTGRES_PASSWORD=postgres
+POSTGRES_DB=your_db_name
+POSTGRES_USERNAME=your_db_username
+POSTGRES_PASSWORD=your_db_password
 ```
 
 **Step 3: Start all containers**
