@@ -359,11 +359,11 @@ The default `.env` values are already configured to work with Docker out of the 
 NODE_ENV=development
 PORT=3000
 
-DATABASE_HOST=postgres   # Docker service name (do NOT change for Docker)
-DATABASE_PORT=5432
-DATABASE_NAME=property_booking
-DATABASE_USER=postgres
-DATABASE_PASS=postgres
+POSTGRES_HOST=postgres   # Docker service name (do NOT change for Docker)
+POSTGRES_PORT=5432
+POSTGRES_DB=property_booking
+POSTGRES_USERNAME=postgres
+POSTGRES_PASSWORD=postgres
 ```
 
 **Step 3: Start all containers**
@@ -434,11 +434,11 @@ Open `.env` and update it with your local PostgreSQL credentials:
 NODE_ENV=development
 PORT=3000
 
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_NAME=property_booking
-DATABASE_USER=your_pg_username
-DATABASE_PASS=your_pg_password
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=property_booking
+POSTGRES_USERNAME=postgres
+POSTGRES_PASSWORD=postgres
 ```
 
 **Step 5: Run database migrations**
