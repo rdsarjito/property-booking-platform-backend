@@ -8,9 +8,7 @@ export class CreateTables1784301222305 implements MigrationInterface {
     await queryRunner.query(
       `CREATE TYPE "public"."properties_type_enum" AS ENUM('HOTEL', 'VILLA', 'APARTMENT', 'GUEST_HOUSE')`,
     );
-    await queryRunner.query(
-      `CREATE TYPE "public"."coupons_type_enum" AS ENUM('PERCENTAGE', 'FLAT')`,
-    );
+    await queryRunner.query(`CREATE TYPE "public"."coupons_type_enum" AS ENUM('PERCENT', 'FIXED')`);
     await queryRunner.query(
       `CREATE TYPE "public"."bookings_status_enum" AS ENUM('PENDING', 'PAID', 'CANCELLED')`,
     );
