@@ -419,7 +419,7 @@ npm install
 Open your PostgreSQL client (psql, DBeaver, pgAdmin, etc.) and run:
 
 ```sql
-CREATE DATABASE property_booking;
+CREATE DATABASE your_db_name;
 ```
 
 **Step 4: Configure environment variables**
