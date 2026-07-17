@@ -327,45 +327,157 @@ PENDING ──→ PAID ──→ CANCELLED (via /refund)
 
 ### Prerequisites
 
-- Node.js v18+
-- PostgreSQL 14+ (or Docker)
-- npm v9+
+| Tool | Version | Notes |
+|---|---|---|
+| Node.js | v18+ | Required for running the application |
+| npm | v9+ | Comes with Node.js |
+| PostgreSQL | v14+ | Only needed for local setup (not Docker) |
+| Docker & Docker Compose | latest | Required for Docker setup |
 
-### Using Docker (Recommended)
+---
+
+### Option A: Docker (Recommended)
+
+This is the easiest way to run the application. Docker will spin up both PostgreSQL and the API automatically.
+
+**Step 1: Clone the repository**
 
 ```bash
-# 1. Clone and configure environment
-cp .env.example .env
-
-# 2. Start containers (PostgreSQL + API)
-docker compose up -d
-
-# 3. Run migrations & seed data
-docker compose exec api npm run migration:run
-docker compose exec api npm run seed
-
-# 4. Access the API
-# API:     http://localhost:3000/api
-# Swagger: http://localhost:3000/api/docs
+git clone https://github.com/rdsarjito/property-booking-platform-backend.git
+cd property-booking-platform-backend
 ```
 
-### Using Local Environment
+**Step 2: Configure environment variables**
 
 ```bash
-# 1. Install dependencies
+cp .env.example .env
+```
+
+The default `.env` values are already configured to work with Docker out of the box:
+
+```env
+NODE_ENV=development
+PORT=3000
+
+DATABASE_HOST=postgres   # Docker service name (do NOT change for Docker)
+DATABASE_PORT=5432
+DATABASE_NAME=property_booking
+DATABASE_USER=postgres
+DATABASE_PASS=postgres
+```
+
+**Step 3: Start all containers**
+
+```bash
+docker compose up -d
+```
+
+This starts two containers:
+- `postgres` — PostgreSQL database on port `5432`
+- `api` — NestJS application on port `3000`
+
+**Step 4: Run database migrations**
+
+```bash
+docker compose exec api npm run migration:run
+```
+
+**Step 5: Seed initial data**
+
+```bash
+docker compose exec api npm run seed
+```
+
+This will populate the database with sample properties, rooms, and coupon codes.
+
+**Step 6: Verify the application is running**
+
+- API Base URL: `http://localhost:3000/api`
+- Swagger UI: `http://localhost:3000/api/docs`
+
+---
+
+### Option B: Local Environment
+
+Use this if you already have PostgreSQL running locally.
+
+**Step 1: Clone the repository**
+
+```bash
+git clone https://github.com/rdsarjito/property-booking-platform-backend.git
+cd property-booking-platform-backend
+```
+
+**Step 2: Install dependencies**
+
+```bash
 npm install
+```
 
-# 2. Configure PostgreSQL connection in .env
+**Step 3: Create the database**
 
-# 3. Run migrations & seed
+Open your PostgreSQL client (psql, DBeaver, pgAdmin, etc.) and run:
+
+```sql
+CREATE DATABASE property_booking;
+```
+
+**Step 4: Configure environment variables**
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and update it with your local PostgreSQL credentials:
+
+```env
+NODE_ENV=development
+PORT=3000
+
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=property_booking
+DATABASE_USER=your_pg_username
+DATABASE_PASS=your_pg_password
+```
+
+**Step 5: Run database migrations**
+
+```bash
 npm run migration:run
-npm run seed
+```
 
-# 4. Start development server
+This will create all tables (`properties`, `rooms`, `coupons`, `bookings`, `booking_status_histories`) using TypeORM migrations. The application uses `synchronize: false` to ensure schema changes are always tracked and reproducible.
+
+**Step 6: Seed initial data**
+
+```bash
+npm run seed
+```
+
+**Step 7: Start the development server**
+
+```bash
 npm run start:dev
 ```
 
+The server starts with hot-reload enabled. Access the API at `http://localhost:3000/api`.
+
 ---
+
+### Resetting the Database
+
+To wipe all data and re-seed from scratch:
+
+```bash
+npm run seed
+```
+
+> The seed script runs a `TRUNCATE ... CASCADE` before inserting new data, so it is safe to run multiple times.
+
+---
+
+
 
 ## Running Tests
 
