@@ -35,7 +35,7 @@ Backend API untuk platform pemesanan properti (seperti Traveloka, Airbnb, Tiket.
 ```mermaid
 erDiagram
     properties {
-        serial id PK
+        uuid id PK
         varchar(200) name
         varchar(100) city
         text address
@@ -46,8 +46,8 @@ erDiagram
     }
 
     rooms {
-        serial id PK
-        int property_id FK
+        uuid id PK
+        uuid property_id FK
         varchar(200) name
         int capacity
         decimal(15_2) price_per_night
@@ -58,7 +58,7 @@ erDiagram
     }
 
     coupons {
-        serial id PK
+        uuid id PK
         varchar(30) code UK
         enum type "PERCENT|FIXED"
         decimal(15_2) discount_value
@@ -70,10 +70,10 @@ erDiagram
     }
 
     bookings {
-        serial id PK
+        uuid id PK
         varchar(30) booking_code UK
-        int room_id FK
-        int coupon_id FK "nullable"
+        uuid room_id FK
+        uuid coupon_id FK "nullable"
         varchar(100) customer_name
         varchar(150) customer_email
         date check_in_date
@@ -92,8 +92,8 @@ erDiagram
     }
 
     booking_status_histories {
-        serial id PK
-        int booking_id FK
+        uuid id PK
+        uuid booking_id FK
         enum from_status
         enum to_status
         timestamp changed_at
