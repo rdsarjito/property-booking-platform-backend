@@ -208,14 +208,63 @@ Pastikan Docker dan Docker Compose sudah terpasang dan berjalan di sistem Anda:
 
 ---
 
-## 📌 Contoh Request cURL (Main Flows)
+## 📌 Contoh Request & Response (Main Flows)
 
 ### 1. Get Properties (Dengan Filter & Tanggal Ketersediaan)
+
+**Request:**
 ```bash
 curl -X GET "http://localhost:3000/api/properties?city=Jakarta&minRating=4.0&checkInDate=2026-07-20&checkOutDate=2026-07-22"
 ```
 
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "data": [
+      {
+        "id": 1,
+        "name": "Grand Hyatt Jakarta",
+        "city": "Jakarta",
+        "address": "Jl. MH Thamrin No.28-30, Jakarta Pusat",
+        "type": "HOTEL",
+        "rating": 4.8,
+        "rooms": [
+          {
+            "id": 1,
+            "name": "Deluxe Room",
+            "capacity": 2,
+            "pricePerNight": 1500000,
+            "totalUnit": 10,
+            "availableUnit": 8
+          },
+          {
+            "id": 2,
+            "name": "Suite Room",
+            "capacity": 4,
+            "pricePerNight": 3500000,
+            "totalUnit": 5,
+            "availableUnit": 5
+          }
+        ]
+      }
+    ],
+    "meta": {
+      "total": 1,
+      "page": 1,
+      "limit": 10,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+---
+
 ### 2. Create Booking (Dengan Kupon NEWUSER10)
+
+**Request:**
 ```bash
 curl -X POST "http://localhost:3000/api/bookings" \
   -H "Content-Type: application/json" \
@@ -229,12 +278,210 @@ curl -X POST "http://localhost:3000/api/bookings" \
   }'
 ```
 
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "bookingCode": "BK-20260720-A1B2C3D4",
+    "roomId": 1,
+    "couponId": 1,
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@example.com",
+    "checkInDate": "2026-07-20",
+    "checkOutDate": "2026-07-23",
+    "totalNights": 3,
+    "subtotal": 4500000,
+    "automaticDiscount": 450000,
+    "couponDiscount": 100000,
+    "finalPrice": 3950000,
+    "status": "PENDING",
+    "createdAt": "2026-07-17T14:30:00.000Z"
+  }
+}
+```
+
+> **Penjelasan Kalkulasi:**
+> - Subtotal: 1.500.000 × 3 malam = **4.500.000**
+> - Automatic discount (≥3 malam → 10%): 4.500.000 × 10% = **450.000**
+> - Subtotal setelah diskon otomatis: 4.500.000 - 450.000 = **4.050.000**
+> - Kupon NEWUSER10 (10%, max 100.000): 4.050.000 × 10% = 405.000 → cap **100.000**
+> - Final price: 4.050.000 - 100.000 = **3.950.000**
+
+---
+
 ### 3. Selesaikan Pembayaran Booking (Mark as Paid)
+
+**Request:**
 ```bash
 curl -X PATCH "http://localhost:3000/api/bookings/1/pay"
 ```
 
-### 4. Refund Booking (Mark as Cancelled & Kembalikan Unit Kamar)
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "bookingCode": "BK-20260720-A1B2C3D4",
+    "roomId": 1,
+    "couponId": 1,
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@example.com",
+    "checkInDate": "2026-07-20",
+    "checkOutDate": "2026-07-23",
+    "totalNights": 3,
+    "subtotal": 4500000,
+    "automaticDiscount": 450000,
+    "couponDiscount": 100000,
+    "finalPrice": 3950000,
+    "status": "PAID",
+    "createdAt": "2026-07-17T14:30:00.000Z"
+  }
+}
+```
+
+---
+
+### 4. Cancel Booking (Restore Unit Kamar)
+
+**Request:**
+```bash
+curl -X PATCH "http://localhost:3000/api/bookings/2/cancel"
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 2,
+    "bookingCode": "BK-20260720-E5F6G7H8",
+    "roomId": 1,
+    "couponId": null,
+    "customerName": "Jane Smith",
+    "customerEmail": "jane.smith@example.com",
+    "checkInDate": "2026-07-25",
+    "checkOutDate": "2026-07-26",
+    "totalNights": 1,
+    "subtotal": 1500000,
+    "automaticDiscount": 0,
+    "couponDiscount": 0,
+    "finalPrice": 1500000,
+    "status": "CANCELLED",
+    "createdAt": "2026-07-17T14:35:00.000Z"
+  }
+}
+```
+
+---
+
+### 5. Refund Booking (Bonus: Cancel PAID Booking)
+
+**Request:**
 ```bash
 curl -X PATCH "http://localhost:3000/api/bookings/1/refund"
 ```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "bookingCode": "BK-20260720-A1B2C3D4",
+    "roomId": 1,
+    "couponId": 1,
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@example.com",
+    "checkInDate": "2026-07-20",
+    "checkOutDate": "2026-07-23",
+    "totalNights": 3,
+    "subtotal": 4500000,
+    "automaticDiscount": 450000,
+    "couponDiscount": 100000,
+    "finalPrice": 3950000,
+    "status": "CANCELLED",
+    "createdAt": "2026-07-17T14:30:00.000Z"
+  }
+}
+```
+
+---
+
+### 6. Contoh Error Responses
+
+**Invalid Coupon Code (404 Not Found):**
+```bash
+curl -X POST "http://localhost:3000/api/bookings" \
+  -H "Content-Type: application/json" \
+  -d '{ "customerName": "Test", "customerEmail": "test@mail.com", "roomId": 1, "checkInDate": "2026-08-01", "checkOutDate": "2026-08-02", "couponCode": "INVALID_CODE" }'
+```
+```json
+{
+  "success": false,
+  "statusCode": 404,
+  "message": "Coupon code INVALID_CODE not found",
+  "timestamp": "2026-07-17T14:40:00.000Z",
+  "path": "/api/bookings"
+}
+```
+
+**Minimum Transaction Not Met (422 Unprocessable Entity):**
+```json
+{
+  "success": false,
+  "statusCode": 422,
+  "message": "Minimum transaction of 500000 is required to use coupon NEWUSER10",
+  "timestamp": "2026-07-17T14:41:00.000Z",
+  "path": "/api/bookings"
+}
+```
+
+**Cancel PAID Booking (409 Conflict):**
+```bash
+curl -X PATCH "http://localhost:3000/api/bookings/1/cancel"
+```
+```json
+{
+  "success": false,
+  "statusCode": 409,
+  "message": "Cannot cancel booking with status PAID. Paid bookings cannot be cancelled.",
+  "timestamp": "2026-07-17T14:42:00.000Z",
+  "path": "/api/bookings/1/cancel"
+}
+```
+
+**Room Unavailable / Overbooking (409 Conflict):**
+```json
+{
+  "success": false,
+  "statusCode": 409,
+  "message": "No available units for this room type",
+  "timestamp": "2026-07-17T14:43:00.000Z",
+  "path": "/api/bookings"
+}
+```
+
+**Validation Error (400 Bad Request):**
+```bash
+curl -X POST "http://localhost:3000/api/bookings" \
+  -H "Content-Type: application/json" \
+  -d '{ "customerName": "", "roomId": 1 }'
+```
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "message": [
+    "customerName should not be empty",
+    "customerEmail must be an email",
+    "checkInDate must be a valid ISO 8601 date string",
+    "checkOutDate must be a valid ISO 8601 date string"
+  ],
+  "timestamp": "2026-07-17T14:44:00.000Z",
+  "path": "/api/bookings"
+}
+```
+
