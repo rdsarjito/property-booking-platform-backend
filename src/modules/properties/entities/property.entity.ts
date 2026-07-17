@@ -21,8 +21,8 @@ export enum PropertyType {
 @Index(['city', 'type'])
 @Index(['rating'])
 export class Property {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ type: 'varchar', length: 200 })
   name!: string;

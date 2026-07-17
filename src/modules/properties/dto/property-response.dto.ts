@@ -1,7 +1,7 @@
 import { PropertyType } from '../entities/property.entity';
 
 export class RoomResponseDto {
-  id!: number;
+  id!: string;
   name!: string;
   capacity!: number;
   pricePerNight!: number;
@@ -10,7 +10,7 @@ export class RoomResponseDto {
 }
 
 export class PropertyResponseDto {
-  id!: number;
+  id!: string;
   name!: string;
   city!: string;
   address!: string;

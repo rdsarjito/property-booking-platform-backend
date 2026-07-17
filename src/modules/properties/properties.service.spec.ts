@@ -55,12 +55,12 @@ describe('PropertiesService', () => {
         rating: 4.5,
       };
 
-      const expectedEntity = { ...dto, id: 1 };
+      const expectedEntity = { ...dto, id: '123e4567-e89b-12d3-a456-426614174000' };
       mockPropertyRepository.create.mockReturnValue(expectedEntity);
       mockPropertyRepository.save.mockResolvedValue(expectedEntity);
 
       const result = await service.create(dto);
-      expect(result.id).toBe(1);
+      expect(result.id).toBe('123e4567-e89b-12d3-a456-426614174000');
       expect(result.name).toBe('Hotel Indigo');
       expect(mockPropertyRepository.create).toHaveBeenCalledWith(dto);
       expect(mockPropertyRepository.save).toHaveBeenCalledWith(expectedEntity);

@@ -13,11 +13,11 @@ import { BookingStatus } from '../enums/booking-status.enum';
 @Entity('booking_status_histories')
 @Index(['bookingId'])
 export class BookingStatusHistory {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
-  @Column({ name: 'booking_id', type: 'int' })
-  bookingId!: number;
+  @Column({ name: 'booking_id', type: 'uuid' })
+  bookingId!: string;
 
   @Column({ name: 'from_status', type: 'enum', enum: BookingStatus })
   fromStatus!: BookingStatus;

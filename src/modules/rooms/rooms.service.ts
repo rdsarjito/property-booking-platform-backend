@@ -14,7 +14,7 @@ export class RoomsService {
     private readonly propertiesService: PropertiesService,
   ) {}
 
-  async create(propertyId: number, createRoomDto: CreateRoomDto): Promise<RoomResponseDto> {
+  async create(propertyId: string, createRoomDto: CreateRoomDto): Promise<RoomResponseDto> {
     // 1. Validate property existence (will throw 404 if not found)
     await this.propertiesService.findOne(propertyId);
 
@@ -32,7 +32,7 @@ export class RoomsService {
     return this.mapToResponse(saved);
   }
 
-  async findByProperty(propertyId: number): Promise<RoomResponseDto[]> {
+  async findByProperty(propertyId: string): Promise<RoomResponseDto[]> {
     // Validate property existence
     await this.propertiesService.findOne(propertyId);
 

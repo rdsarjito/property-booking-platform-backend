@@ -1,4 +1,4 @@
-import { Controller, Post, Patch, Body, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Patch, Body, Param, ParseUUIDPipe } from '@nestjs/common';
 import { BookingsService } from './services/bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { BookingResponseDto } from './dto/booking-response.dto';
@@ -38,7 +38,7 @@ export class BookingsController {
   })
   @ApiResponse({ status: 404, description: 'Booking not found' })
   @ApiResponse({ status: 409, description: 'Booking expired or already paid/cancelled' })
-  async pay(@Param('id', ParseIntPipe) id: number): Promise<BookingResponseDto> {
+  async pay(@Param('id', ParseUUIDPipe) id: string): Promise<BookingResponseDto> {
     return this.bookingsService.pay(id);
   }
 
@@ -56,7 +56,7 @@ export class BookingsController {
   })
   @ApiResponse({ status: 404, description: 'Booking not found' })
   @ApiResponse({ status: 409, description: 'Booking already paid/cancelled' })
-  async cancel(@Param('id', ParseIntPipe) id: number): Promise<BookingResponseDto> {
+  async cancel(@Param('id', ParseUUIDPipe) id: string): Promise<BookingResponseDto> {
     return this.bookingsService.cancel(id);
   }
 
@@ -73,7 +73,7 @@ export class BookingsController {
   })
   @ApiResponse({ status: 404, description: 'Booking not found' })
   @ApiResponse({ status: 409, description: 'Booking is not PAID' })
-  async refund(@Param('id', ParseIntPipe) id: number): Promise<BookingResponseDto> {
+  async refund(@Param('id', ParseUUIDPipe) id: string): Promise<BookingResponseDto> {
     return this.bookingsService.refund(id);
   }
 }

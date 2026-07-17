@@ -9,8 +9,8 @@ export enum CouponType {
 @Entity('coupons')
 @Index(['code'], { unique: true })
 export class Coupon {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ type: 'varchar', length: 30, unique: true })
   code!: string;

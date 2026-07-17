@@ -1,10 +1,10 @@
 import { BookingStatus } from '../enums/booking-status.enum';
 
 export class BookingResponseDto {
-  id!: number;
+  id!: string;
   bookingCode!: string;
-  roomId!: number;
-  couponId!: number | null;
+  roomId!: string;
+  couponId!: string | null;
   customerName!: string;
   customerEmail!: string;
   checkInDate!: string;

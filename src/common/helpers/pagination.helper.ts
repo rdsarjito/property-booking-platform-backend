@@ -26,15 +26,13 @@ export class PaginationHelper {
     };
   }
 
-  static encodeCursor(id: number): string {
-    return Buffer.from(id.toString()).toString('base64');
+  static encodeCursor(id: string): string {
+    return Buffer.from(id).toString('base64');
   }
 
-  static decodeCursor(cursor: string): number | null {
+  static decodeCursor(cursor: string): string | null {
     try {
-      const decoded = Buffer.from(cursor, 'base64').toString('ascii');
-      const id = parseInt(decoded, 10);
-      return isNaN(id) ? null : id;
+      return Buffer.from(cursor, 'base64').toString('ascii');
     } catch {
       return null;
     }

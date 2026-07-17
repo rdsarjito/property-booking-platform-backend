@@ -117,7 +117,7 @@ export class BookingsService {
     });
   }
 
-  async pay(id: number): Promise<BookingResponseDto> {
+  async pay(id: string): Promise<BookingResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const booking = await manager.findOne(Booking, {
         where: { id },
@@ -173,7 +173,7 @@ export class BookingsService {
     });
   }
 
-  async cancel(id: number): Promise<BookingResponseDto> {
+  async cancel(id: string): Promise<BookingResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const booking = await manager.findOne(Booking, {
         where: { id },
@@ -218,7 +218,7 @@ export class BookingsService {
     });
   }
 
-  async refund(id: number): Promise<BookingResponseDto> {
+  async refund(id: string): Promise<BookingResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const booking = await manager.findOne(Booking, {
         where: { id },

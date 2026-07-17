@@ -130,7 +130,7 @@ export class PropertiesService {
     }
   }
 
-  async findOne(id: number): Promise<PropertyResponseDto> {
+  async findOne(id: string): Promise<PropertyResponseDto> {
     const property = await this.propertyRepository.findOne({
       where: { id },
       relations: ['rooms'],

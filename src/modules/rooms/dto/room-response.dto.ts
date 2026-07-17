@@ -1,6 +1,6 @@
 export class RoomResponseDto {
-  id!: number;
-  propertyId!: number;
+  id!: string;
+  propertyId!: string;
   name!: string;
   capacity!: number;
   pricePerNight!: number;

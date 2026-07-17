@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseUUIDPipe } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { RoomResponseDto } from './dto/room-response.dto';
@@ -20,7 +20,7 @@ export class RoomsController {
   @ApiResponse({ status: 400, description: 'Validation error' })
   @ApiResponse({ status: 404, description: 'Property not found' })
   async create(
-    @Param('propertyId', ParseIntPipe) propertyId: number,
+    @Param('propertyId', ParseUUIDPipe) propertyId: string,
     @Body() createRoomDto: CreateRoomDto,
   ): Promise<RoomResponseDto> {
     return this.roomsService.create(propertyId, createRoomDto);
@@ -36,7 +36,7 @@ export class RoomsController {
   })
   @ApiResponse({ status: 404, description: 'Property not found' })
   async findByProperty(
-    @Param('propertyId', ParseIntPipe) propertyId: number,
+    @Param('propertyId', ParseUUIDPipe) propertyId: string,
   ): Promise<RoomResponseDto[]> {
     return this.roomsService.findByProperty(propertyId);
   }

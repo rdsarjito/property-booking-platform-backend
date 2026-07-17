@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, ParseUUIDPipe } from '@nestjs/common';
 import { PropertiesService } from './properties.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { FilterPropertyDto } from './dto/filter-property.dto';
@@ -42,7 +42,7 @@ export class PropertiesController {
     type: PropertyResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Property not found' })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<PropertyResponseDto> {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<PropertyResponseDto> {
     return this.propertiesService.findOne(id);
   }
 }

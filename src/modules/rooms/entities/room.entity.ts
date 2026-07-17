@@ -16,11 +16,11 @@ import { DecimalTransformer } from '../../../common/helpers/decimal.transformer'
 @Index(['pricePerNight'])
 @Index(['capacity'])
 export class Room {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
-  @Column({ name: 'property_id' })
-  propertyId!: number;
+  @Column({ name: 'property_id', type: 'uuid' })
+  propertyId!: string;
 
   @Column({ type: 'varchar', length: 200 })
   name!: string;

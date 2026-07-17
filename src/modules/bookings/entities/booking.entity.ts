@@ -21,17 +21,17 @@ import { BookingStatus } from '../enums/booking-status.enum';
 @Index(['customerEmail'])
 @Index(['status', 'expiredAt'])
 export class Booking {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'booking_code', type: 'varchar', length: 30, unique: true })
   bookingCode!: string;
 
-  @Column({ name: 'room_id', type: 'int' })
-  roomId!: number;
+  @Column({ name: 'room_id', type: 'uuid' })
+  roomId!: string;
 
-  @Column({ name: 'coupon_id', type: 'int', nullable: true })
-  couponId!: number | null;
+  @Column({ name: 'coupon_id', type: 'uuid', nullable: true })
+  couponId!: string | null;
 
   @Column({ name: 'customer_name', type: 'varchar', length: 100 })
   customerName!: string;

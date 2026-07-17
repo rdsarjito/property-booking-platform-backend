@@ -2,10 +2,10 @@ import {
   IsString,
   IsNotEmpty,
   IsEmail,
-  IsInt,
   IsOptional,
   IsDateString,
   MaxLength,
+  IsUUID,
 } from 'class-validator';
 import { IsAfterDate } from '../../../common/decorators/is-after-date.decorator';
 
@@ -20,8 +20,8 @@ export class CreateBookingDto {
   @MaxLength(150)
   customerEmail!: string;
 
-  @IsInt()
-  roomId!: number;
+  @IsUUID()
+  roomId!: string;
 
   @IsDateString()
   @IsNotEmpty()
