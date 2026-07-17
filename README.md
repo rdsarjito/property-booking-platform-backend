@@ -395,12 +395,75 @@ npm run test:e2e
 
 ## Sample Request & Response
 
-### 1. List Properties (with Filters)
+Below are payload examples of HTTP requests and responses for the application's main flows. Note that all responses are wrapped in a standard structure `{ "success": true, "data": ... }` by the global transform interceptor.
 
-```bash
-curl -X GET "http://localhost:3000/api/properties?city=Jakarta&minRating=4.0"
+---
+
+### 1. Create Property
+
+- **Endpoint**: `POST /api/properties`
+- **Request Body**:
+```json
+{
+  "name": "Hotel Grand Indonesia",
+  "city": "Jakarta",
+  "address": "Jl. M.H. Thamrin No.1, Jakarta Pusat",
+  "type": "HOTEL",
+  "rating": 4.5
+}
+```
+- **Response (201 Created)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "982785f1-bfba-4adb-99ba-4379a438d832",
+    "name": "Hotel Grand Indonesia",
+    "city": "Jakarta",
+    "address": "Jl. M.H. Thamrin No.1, Jakarta Pusat",
+    "type": "HOTEL",
+    "rating": 4.5
+  }
+}
 ```
 
+---
+
+### 2. Create Room (Linked to Property)
+
+- **Endpoint**: `POST /api/properties/:propertyId/rooms`
+- **Request Body**:
+```json
+{
+  "name": "Deluxe Room",
+  "capacity": 2,
+  "pricePerNight": 500000,
+  "totalUnit": 10,
+  "availableUnit": 10
+}
+```
+- **Response (201 Created)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "propertyId": "982785f1-bfba-4adb-99ba-4379a438d832",
+    "name": "Deluxe Room",
+    "capacity": 2,
+    "pricePerNight": 500000,
+    "totalUnit": 10,
+    "availableUnit": 10
+  }
+}
+```
+
+---
+
+### 3. Get Properties (With Filters & Pagination)
+
+- **Endpoint**: `GET /api/properties?city=Jakarta&minRating=4.0&limit=10&page=1`
+- **Response (200 OK)**:
 ```json
 {
   "success": true,
@@ -437,97 +500,196 @@ curl -X GET "http://localhost:3000/api/properties?city=Jakarta&minRating=4.0"
 
 ---
 
-### 2. Create Booking (with Coupon)
+### 4. Get Property Detail (With Rooms list)
 
-```bash
-curl -X POST "http://localhost:3000/api/bookings" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "customerName": "John Doe",
-    "customerEmail": "john.doe@example.com",
-    "roomId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-    "checkInDate": "2026-07-20",
-    "checkOutDate": "2026-07-23",
-    "couponCode": "NEWUSER10"
-  }'
+- **Endpoint**: `GET /api/properties/982785f1-bfba-4adb-99ba-4379a438d832`
+- **Response (200 OK)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "982785f1-bfba-4adb-99ba-4379a438d832",
+    "name": "Hotel Grand Indonesia",
+    "city": "Jakarta",
+    "address": "Jl. M.H. Thamrin No.1, Jakarta Pusat",
+    "type": "HOTEL",
+    "rating": 4.5,
+    "rooms": [
+      {
+        "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "name": "Deluxe Room",
+        "capacity": 2,
+        "pricePerNight": 500000,
+        "totalUnit": 10,
+        "availableUnit": 10
+      }
+    ]
+  }
+}
 ```
 
+---
+
+### 5. Get Rooms of a Property
+
+- **Endpoint**: `GET /api/properties/982785f1-bfba-4adb-99ba-4379a438d832/rooms`
+- **Response (200 OK)**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "propertyId": "982785f1-bfba-4adb-99ba-4379a438d832",
+      "name": "Deluxe Room",
+      "capacity": 2,
+      "pricePerNight": 500000,
+      "totalUnit": 10,
+      "availableUnit": 10
+    }
+  ]
+}
+```
+
+---
+
+### 6. Create Booking (With Auto-Discount & Coupon)
+
+- **Endpoint**: `POST /api/bookings`
+- **Request Body**:
+```json
+{
+  "customerName": "John Doe",
+  "customerEmail": "john.doe@example.com",
+  "roomId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "checkInDate": "2026-07-20",
+  "checkOutDate": "2026-07-23",
+  "couponCode": "NEWUSER10"
+}
+```
+- **Response (201 Created)**:
+- _Note: 3 nights stay triggers a 10% auto-discount. The coupon NEWUSER10 (10% up to Rp 100k) is applied afterward._
 ```json
 {
   "success": true,
   "data": {
     "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "bookingCode": "BK-20260720-A1B2C3D4",
-    "roomId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "roomId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "couponId": "d4e5f6a7-b8c9-0123-def0-1234567890ab",
     "customerName": "John Doe",
     "customerEmail": "john.doe@example.com",
     "checkInDate": "2026-07-20",
     "checkOutDate": "2026-07-23",
     "totalNights": 3,
-    "subtotal": 3600000,
-    "automaticDiscount": 360000,
+    "subtotal": 1500000,
+    "automaticDiscount": 150000,
     "couponDiscount": 100000,
-    "finalPrice": 3140000,
+    "finalPrice": 1250000,
     "status": "PENDING",
     "createdAt": "2026-07-17T14:30:00.000Z"
   }
 }
 ```
-
 > **Pricing Breakdown:**
-> - Subtotal: 1.200.000 × 3 nights = **3.600.000**
-> - Auto discount (≥3 nights → 10%): **360.000**
-> - After auto discount: **3.240.000**
-> - NEWUSER10 (10%, max 100k): 324.000 → capped at **100.000**
-> - Final: 3.240.000 − 100.000 = **3.140.000**
+> - Subtotal: 500,000 × 3 nights = **1,500,000**
+> - Auto discount (≥3 nights → 10%): **150,000**
+> - After auto discount: **1,350,000**
+> - NEWUSER10 (10% of 1,350,000 = 135,000, max 100k): capped at **100,000**
+> - Final Price: 1,350,000 − 100,000 = **1,250,000**
 
 ---
 
-### 3. Pay Booking
+### 7. Pay Booking
 
-```bash
-curl -X PATCH "http://localhost:3000/api/bookings/f47ac10b-58cc-4372-a567-0e02b2c3d479/pay"
-```
-
+- **Endpoint**: `PATCH /api/bookings/f47ac10b-58cc-4372-a567-0e02b2c3d479/pay`
+- **Response (200 OK)**:
 ```json
 {
   "success": true,
   "data": {
     "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "bookingCode": "BK-20260720-A1B2C3D4",
+    "roomId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "couponId": "d4e5f6a7-b8c9-0123-def0-1234567890ab",
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@example.com",
+    "checkInDate": "2026-07-20",
+    "checkOutDate": "2026-07-23",
+    "totalNights": 3,
+    "subtotal": 1500000,
+    "automaticDiscount": 150000,
+    "couponDiscount": 100000,
+    "finalPrice": 1250000,
     "status": "PAID",
-    "finalPrice": 3140000,
-    "...": "other fields omitted for brevity"
+    "createdAt": "2026-07-17T14:30:00.000Z"
   }
 }
 ```
 
 ---
 
-### 4. Cancel Booking
+### 8. Cancel Booking (Restores Room Unit)
 
-```bash
-curl -X PATCH "http://localhost:3000/api/bookings/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel"
-```
-
+- **Endpoint**: `PATCH /api/bookings/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel`
+- **Response (200 OK)**:
 ```json
 {
   "success": true,
   "data": {
     "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "bookingCode": "BK-20260720-A1B2C3D4",
+    "roomId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "couponId": "d4e5f6a7-b8c9-0123-def0-1234567890ab",
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@example.com",
+    "checkInDate": "2026-07-20",
+    "checkOutDate": "2026-07-23",
+    "totalNights": 3,
+    "subtotal": 1500000,
+    "automaticDiscount": 150000,
+    "couponDiscount": 100000,
+    "finalPrice": 1250000,
     "status": "CANCELLED",
-    "...": "room available_unit restored automatically"
+    "createdAt": "2026-07-17T14:30:00.000Z"
   }
 }
 ```
 
 ---
 
-### 5. Error Responses
+### 9. Refund Booking (Bonus Admin Flow)
 
-**Overbooking — No Available Units (409):**
+- **Endpoint**: `PATCH /api/bookings/f47ac10b-58cc-4372-a567-0e02b2c3d479/refund`
+- **Response (200 OK)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "bookingCode": "BK-20260720-A1B2C3D4",
+    "roomId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "couponId": "d4e5f6a7-b8c9-0123-def0-1234567890ab",
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@example.com",
+    "checkInDate": "2026-07-20",
+    "checkOutDate": "2026-07-23",
+    "totalNights": 3,
+    "subtotal": 1500000,
+    "automaticDiscount": 150000,
+    "couponDiscount": 100000,
+    "finalPrice": 1250000,
+    "status": "CANCELLED",
+    "createdAt": "2026-07-17T14:30:00.000Z"
+  }
+}
+```
+
+---
+
+### 10. Error Responses
+
+**Overbooking — No Available Units (409 Conflict):**
 ```json
 {
   "success": false,
@@ -538,37 +700,40 @@ curl -X PATCH "http://localhost:3000/api/bookings/f47ac10b-58cc-4372-a567-0e02b2
 }
 ```
 
-**Invalid Coupon (404):**
+**Invalid Coupon Code (404 Not Found):**
 ```json
 {
   "success": false,
   "statusCode": 404,
   "message": "Coupon code INVALID_CODE not found",
+  "timestamp": "2026-07-17T14:40:00.000Z",
   "path": "/api/bookings"
 }
 ```
 
-**Min Transaction Not Met (422):**
+**Minimum Transaction Not Met (422 Unprocessable Entity):**
 ```json
 {
   "success": false,
   "statusCode": 422,
   "message": "Minimum transaction of 500000 is required to use coupon NEWUSER10",
+  "timestamp": "2026-07-17T14:41:00.000Z",
   "path": "/api/bookings"
 }
 ```
 
-**Cannot Cancel PAID Booking (409):**
+**Cannot Cancel PAID Booking (409 Conflict):**
 ```json
 {
   "success": false,
   "statusCode": 409,
   "message": "Cannot cancel booking with status PAID. Paid bookings cannot be cancelled.",
+  "timestamp": "2026-07-17T14:42:00.000Z",
   "path": "/api/bookings/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel"
 }
 ```
 
-**Validation Error (400):**
+**Validation Error (400 Bad Request):**
 ```json
 {
   "success": false,
@@ -579,7 +744,19 @@ curl -X PATCH "http://localhost:3000/api/bookings/f47ac10b-58cc-4372-a567-0e02b2
     "roomId must be a UUID",
     "checkInDate must be a valid ISO 8601 date string"
   ],
+  "timestamp": "2026-07-17T14:44:00.000Z",
   "path": "/api/bookings"
+}
+```
+
+**Property Not Found (404 Not Found):**
+```json
+{
+  "success": false,
+  "statusCode": 404,
+  "message": "Property with id 00000000-0000-0000-0000-000000000000 not found",
+  "timestamp": "2026-07-17T14:45:00.000Z",
+  "path": "/api/properties/00000000-0000-0000-0000-000000000000"
 }
 ```
 
