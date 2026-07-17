@@ -764,38 +764,34 @@ Below are payload examples of HTTP requests and responses for the application's 
 
 ## Submission Notes
 
-### Scope Completed
+### Assessment Scope Checklist & Status
 
-#### ✅ 3A — Mandatory
+| Scope / Item | Status | Notes / Reason for Scoping Out |
+|---|---|---|
+| **3A. Mandatory** | | |
+| Property Listing & Filtering | **100% Completed** | Supports filtering by city, type, rating, price, capacity, and date availability. Offset & cursor pagination both implemented. |
+| Property & Room Management | **100% Completed** | Full CRUD for properties and rooms with DTOs, validation, and meaningful error messages. |
+| Booking Transaction | **100% Completed** | Uses `QueryRunner` for atomicity. Prevents overbooking via `pessimistic_write` row locking. Room stock decremented on booking. |
+| Discount & Coupon | **100% Completed** | Auto-discount (≥3 nights → 10%), `NEWUSER10` (10%, max Rp 100k), and `STAYCATION50` (flat Rp 50k) implemented via Strategy Pattern. |
+| Payment & Cancellation | **100% Completed** | `PENDING` → `PAID` / `CANCELLED`. Cancellation restores room `availableUnit`. PAID bookings cannot be cancelled. |
+| **3B. Nice to Have** | | |
+| Date Availability Filtering | **100% Completed** | `checkInDate` + `checkOutDate` query params filter out rooms with active bookings in that range. |
+| Cursor-based Pagination | **100% Completed** | Base64 encoded cursor alongside offset-based pagination. Returns `nextCursor` in meta response. |
+| Expired Booking Auto-cancel | **100% Completed** | Cron job runs every 15 minutes. Bookings `PENDING` for over 1 hour are auto-cancelled and room stock restored. |
+| Swagger / OpenAPI Docs | **100% Completed** | Interactive Swagger UI available at `/api/docs` with examples for all endpoints. |
+| **3C. Bonus** | | |
+| Concurrency-safe Booking | **100% Completed** | `pessimistic_write` (`SELECT ... FOR UPDATE`) prevents race conditions where two concurrent requests could both pass the availability check. |
+| Refund Flow | **100% Completed** | `PATCH /bookings/:id/refund` endpoint. Transitions `PAID` → `CANCELLED`, restores room unit, and logs to `booking_status_histories`. |
+| Booking Status History | **100% Completed** | Every status transition is logged to a dedicated `booking_status_histories` audit table with `previousStatus`, `newStatus`, and `changedAt`. |
+| Query Performance | **100% Completed** | Composite indexes on high-frequency filter columns, `leftJoinAndSelect` to prevent N+1, selective column loading documented in Design Decisions. |
 
-- [x] Property listing with multi-filter (city, type, rating, price, capacity, date availability)
-- [x] Room management (create, list by property)
-- [x] Booking transaction with coupon discount and automatic discount
-- [x] Payment flow (`PENDING` → `PAID`)
-- [x] Cancellation flow with room unit restoration
-- [x] Pessimistic locking for race condition prevention
-- [x] Full input validation with meaningful error messages
-- [x] Standardized API response format
-
-#### ✅ 3B — Nice to Have
-
-- [x] Cursor-based pagination (in addition to offset)
-- [x] Automatic booking expiry via cron job (15-minute interval check, 1-hour expiry window)
-- [x] Swagger/OpenAPI documentation at `/api/docs`
-
-#### ✅ 3C — Bonus
-
-- [x] Refund flow for PAID bookings
-- [x] Booking status history audit trail (`booking_status_histories` table)
-- [x] Database indexing strategy documented and implemented
-- [x] Query optimization (N+1 prevention, strategic JOINs)
-- [x] Concurrency strategy documented (Pessimistic vs Optimistic trade-offs)
+---
 
 ### What I Would Improve with More Time
 
-1. **Authentication & Authorization** — JWT-based auth with role guards (admin vs customer)
-2. **Rate Limiting** — Throttle booking creation endpoint to prevent abuse
-3. **E2E Test Coverage** — Full integration tests using `supertest` against a test database
-4. **Caching** — Redis layer for property listing queries (cache invalidation on property/room changes)
-5. **Logging** — Structured logging with Winston or Pino for production observability
-6. **CI/CD Pipeline** — GitHub Actions for automated testing, linting, and Docker image builds
+1. **Authentication & Authorization** — JWT-based auth with role guards (admin vs customer endpoints)
+2. **Rate Limiting** — Throttle the booking creation endpoint to prevent abuse
+3. **E2E Test Coverage** — Full integration tests using `supertest` against a dedicated test database
+4. **Caching** — Redis layer for property listing queries with cache invalidation on property/room mutations
+5. **Structured Logging** — Winston or Pino for production-grade observability and log aggregation
+6. **CI/CD Pipeline** — GitHub Actions for automated testing, linting, and Docker image builds on every push
